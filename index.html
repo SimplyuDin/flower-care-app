@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Уход за цветами</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🌱 Home Garden</h1>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="current">Текущие растения</button>
+    <button class="tab-btn" data-tab="add">Добавить растение</button>
+  </nav>
+
+  <div id="tab-current" class="tab-panel active">
+    <section id="today-section">
+      <div id="next-care-banner" class="next-care-banner"></div>
+      <div id="care-table" class="care-table"></div>
+      <p id="today-empty" class="hint hidden"></p>
+      <button id="enable-notify-btn" class="secondary-btn">🔔 Включить уведомления</button>
+      <button id="test-notify-btn" class="secondary-btn hidden">🔔 Проверить уведомление сейчас</button>
+      <p id="notify-status" class="hint"></p>
+    </section>
+
+    <section id="list-section">
+      <div id="plant-list" class="plant-grid"></div>
+    </section>
+  </div>
+
+  <div id="tab-add" class="tab-panel">
+    <section id="add-section">
+      <h2>Добавить растение</h2>
+      <form id="add-form">
+      <label>
+        Имя растения
+        <input type="text" id="name" placeholder="Например: Фикус в спальне" required>
+      </label>
+
+      <label>
+        Тип растения (подставит шаблон полива)
+        <select id="plant-type">
+          <option value="">Не выбрано — заполню вручную</option>
+          <option value="succulent">Суккулент / кактус</option>
+          <option value="tropical">Тропическое лиственное (фикус, монстера, потос)</option>
+          <option value="flowering">Цветущее (орхидея, фиалка, антуриум)</option>
+          <option value="fern">Папоротник / влаголюбивое</option>
+        </select>
+      </label>
+      <p id="season-hint" class="hint"></p>
+
+      <label>
+        Заметка-напоминание
+        <textarea id="note" rows="2" placeholder="например: летом поливать чаще, зимой реже, следить за влажностью"></textarea>
+      </label>
+
+      <label>
+        Поливать каждые (дней)
+        <input type="number" id="water-freq" min="1" value="7" required>
+      </label>
+
+      <label>
+        Подкармливать каждые (дней)
+        <input type="number" id="fertilize-freq" min="1" value="30" required>
+      </label>
+
+      <label>
+        Размер горшка (см, диаметр)
+        <input type="number" id="pot-size" min="1" placeholder="например 15">
+      </label>
+      <p id="water-amount-hint" class="hint"></p>
+
+      <label>
+        Где стоит
+        <input type="text" id="location" placeholder="например: окно на юг, гостиная">
+      </label>
+
+      <label>
+        Фото растения (необязательно)
+        <input type="file" id="photo-input" accept="image/*">
+      </label>
+
+      <button type="submit">Добавить</button>
+    </form>
+    </section>
+  </div>
+
+  <div id="checkin-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="checkin-title">Подтверди действие</h3>
+      <label>
+        Сколько воды (мл), необязательно
+        <input type="number" id="checkin-amount" min="0" placeholder="например 200">
+      </label>
+      <label>
+        Как состояние растения?
+        <select id="checkin-state">
+          <option value="ок">Всё в порядке</option>
+          <option value="вялое">Выглядит вялым</option>
+          <option value="желтые листья">Жёлтые листья</option>
+          <option value="сухие кончики">Сухие кончики листьев</option>
+          <option value="новые листья">Появились новые листья/рост</option>
+        </select>
+      </label>
+      <label>
+        Заметка (необязательно)
+        <input type="text" id="checkin-note" placeholder="например: земля была очень сухая">
+      </label>
+      <div class="modal-actions">
+        <button id="checkin-cancel" class="secondary-btn" type="button">Отмена</button>
+        <button id="checkin-confirm" type="button">Подтвердить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content edit-modal-content">
+      <button id="edit-close-x" class="modal-close-x" type="button" title="Закрыть">✕</button>
+      <div class="edit-photo-row">
+        <img id="edit-photo-preview" class="plant-photo-large hidden" alt="">
+        <div id="edit-photo-placeholder" class="plant-photo-placeholder-large">🌱</div>
+        <input type="file" id="edit-photo-input" accept="image/*" style="display:none">
+        <button id="edit-photo-btn" class="secondary-btn" type="button">📷 Изменить фото</button>
+      </div>
+
+      <label>
+        Имя растения
+        <input type="text" id="edit-name">
+      </label>
+
+      <label>
+        Тип растения
+        <select id="edit-plant-type">
+          <option value="">Не выбрано</option>
+          <option value="succulent">Суккулент / кактус</option>
+          <option value="tropical">Тропическое лиственное (фикус, монстера, потос)</option>
+          <option value="flowering">Цветущее (орхидея, фиалка, антуриум)</option>
+          <option value="fern">Папоротник / влаголюбивое</option>
+        </select>
+      </label>
+      <p id="edit-season-hint" class="hint"></p>
+
+      <label>
+        Заметка-напоминание
+        <textarea id="edit-note" rows="2"></textarea>
+      </label>
+
+      <label>
+        Поливать каждые (дней)
+        <input type="number" id="edit-water-freq" min="1">
+      </label>
+
+      <label>
+        Последний полив был (можно поправить вручную — удобно, если забыл отметить, или чтобы проверить таймер)
+        <input type="datetime-local" id="edit-last-watered">
+      </label>
+
+      <label>
+        Подкармливать каждые (дней)
+        <input type="number" id="edit-fertilize-freq" min="1">
+      </label>
+
+      <label>
+        Размер горшка (см)
+        <input type="number" id="edit-pot-size" min="1">
+      </label>
+      <p id="edit-water-amount-hint" class="hint"></p>
+
+      <label>
+        Где стоит
+        <input type="text" id="edit-location">
+      </label>
+
+      <div class="modal-actions">
+        <button id="edit-water-btn" type="button">💧 Полил сегодня</button>
+        <button id="edit-fertilize-btn" type="button">🌿 Подкормил сегодня</button>
+      </div>
+
+      <button id="edit-history-toggle" class="secondary-btn" type="button">История ▼</button>
+      <div id="edit-history-list" class="history-list hidden"></div>
+
+      <div class="modal-actions">
+        <button id="edit-save-btn" type="button">Сохранить</button>
+        <button id="edit-cancel-btn" class="secondary-btn" type="button">Закрыть</button>
+      </div>
+      <button id="edit-delete-btn" class="danger-btn" type="button">Удалить растение</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
