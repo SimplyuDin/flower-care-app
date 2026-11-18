@@ -1,7 +1,7 @@
 const FIREBASE_URL = 'https://home-garden-dedec-default-rtdb.firebaseio.com';
 const APP_URL = 'https://flower-care-app-drab.vercel.app/';
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHAT_ID = process.env.CHAT_ID;
+const CHAT_IDS = [process.env.CHAT_ID, process.env.CHAT_ID_2].filter(Boolean);
 
 // сколько дней осталось до события (положительное — ещё есть время, отрицательное — просрочено)
 function daysUntil(dateStr, freqDays) {
@@ -38,19 +38,21 @@ async function main() {
 
   const text = `🌱 Home Garden\n\n${messages.join('\n')}`;
 
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: CHAT_ID,
-      text,
-      reply_markup: {
-        inline_keyboard: [[{ text: '🌱 Открыть Home Garden', url: APP_URL }]],
-      },
-    }),
-  });
+  for (const chatId of CHAT_IDS) {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        reply_markup: {
+          inline_keyboard: [[{ text: '🌱 Открыть Home Garden', url: APP_URL }]],
+        },
+      }),
+    });
+  }
 
-  console.log('Отправлено:', text);
+  console.log('Отправлено получателям:', CHAT_IDS.length, text);
 }
 
 main().catch(err => {
