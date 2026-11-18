@@ -548,6 +548,20 @@ document.getElementById('pot-size').addEventListener('input', (e) => {
     ml ? `Рекомендуемый объём воды на один полив: ~${ml} мл` : '';
 });
 
+document.getElementById('photo-upload-btn').addEventListener('click', () => {
+  document.getElementById('photo-input').click();
+});
+
+document.getElementById('photo-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const photo = await resizeImageFile(file);
+  const preview = document.getElementById('photo-upload-preview');
+  preview.src = photo;
+  preview.classList.remove('hidden');
+  document.getElementById('photo-upload-plus').classList.add('hidden');
+});
+
 document.getElementById('add-form').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -578,6 +592,8 @@ document.getElementById('add-form').addEventListener('submit', async (e) => {
   document.getElementById('fertilize-freq').value = 30;
   document.getElementById('season-hint').textContent = '';
   document.getElementById('water-amount-hint').textContent = '';
+  document.getElementById('photo-upload-preview').classList.add('hidden');
+  document.getElementById('photo-upload-plus').classList.remove('hidden');
   render();
 });
 

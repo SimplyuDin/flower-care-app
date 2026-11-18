@@ -33,6 +33,15 @@
     <section id="add-section">
       <h2>Добавить растение</h2>
       <form id="add-form">
+      <div class="photo-upload-wrap">
+        <input type="file" id="photo-input" accept="image/*" class="hidden">
+        <button type="button" id="photo-upload-btn" class="photo-upload-btn">
+          <span id="photo-upload-plus">+</span>
+          <img id="photo-upload-preview" class="hidden" alt="">
+        </button>
+        <span class="photo-upload-label">Фото растения</span>
+      </div>
+
       <label>
         Имя растения
         <input type="text" id="name" placeholder="Например: Фикус в спальне" required>
@@ -74,11 +83,6 @@
       <label>
         Где стоит
         <input type="text" id="location" placeholder="например: окно на юг, гостиная">
-      </label>
-
-      <label>
-        Фото растения (необязательно)
-        <input type="file" id="photo-input" accept="image/*">
       </label>
 
       <button type="submit">Добавить</button>
