@@ -2,47 +2,8 @@ const STORAGE_KEY = 'plants';
 const NOTIFY_DATE_KEY = 'lastNotifyDate';
 const FIREBASE_URL = 'https://home-garden-dedec-default-rtdb.firebaseio.com';
 
-const PLANT_TEMPLATES = {
-  succulent: {
-    label: 'Суккулент / кактус',
-    summer: { water: 12, fertilize: 30 },
-    winter: { water: 25, fertilize: 90 },
-    tip: 'Главное — не перелить, дать земле полностью просохнуть между поливами.',
-  },
-  tropical: {
-    label: 'Тропическое лиственное',
-    summer: { water: 7, fertilize: 21 },
-    winter: { water: 14, fertilize: 60 },
-    tip: 'Избегать прямого палящего солнца.',
-  },
-  flowering: {
-    label: 'Цветущее',
-    summer: { water: 6, fertilize: 14 },
-    winter: { water: 12, fertilize: 30 },
-    tip: 'Следить за влажностью воздуха.',
-  },
-  fern: {
-    label: 'Папоротник / влаголюбивое',
-    summer: { water: 4, fertilize: 21 },
-    winter: { water: 8, fertilize: 45 },
-    tip: 'Любит высокую влажность воздуха — можно опрыскивать.',
-  },
-};
-
 let pendingCheckin = null; // { id, type: 'water' | 'fertilize' }
 let editingPlantId = null;
-
-function generateTemplateNote(type, season) {
-  const t = PLANT_TEMPLATES[type];
-  if (!t) return '';
-  return `${t.label}. Летом поливать раз в ~${t.summer.water} дн., зимой — раз в ~${t.winter.water} дн. ${t.tip}`;
-}
-
-function getCurrentSeason() {
-  const month = new Date().getMonth(); // 0 = январь
-  // упрощённо: март-октябрь — период активного роста, ноябрь-февраль — покой
-  return (month >= 2 && month <= 9) ? 'summer' : 'winter';
-}
 
 function toDatetimeLocalValue(isoString) {
   const d = new Date(isoString);
@@ -213,21 +174,11 @@ function deletePlant(id) {
 
 // ---------- Edit modal ----------
 
-function fillEditTypeFields(type, season) {
-  const t = PLANT_TEMPLATES[type][season];
-  document.getElementById('edit-water-freq').value = t.water;
-  document.getElementById('edit-fertilize-freq').value = t.fertilize;
-  document.getElementById('edit-note').value = generateTemplateNote(type, season);
-  document.getElementById('edit-season-hint').textContent =
-    `Подставлено для текущего периода (${season === 'summer' ? 'весна-лето, активный рост' : 'осень-зима, период покоя'}) — можешь поправить вручную.`;
-}
-
 function openEditModal(id) {
   editingPlantId = id;
   const plant = loadPlants().find(p => p.id === id);
 
   document.getElementById('edit-name').value = plant.name;
-  document.getElementById('edit-plant-type').value = plant.plantType || '';
   document.getElementById('edit-water-freq').value = plant.waterFreq;
   document.getElementById('edit-last-watered').value = toDatetimeLocalValue(plant.lastWatered);
   updateLastWateredButtonLabel();
@@ -235,7 +186,6 @@ function openEditModal(id) {
   document.getElementById('edit-pot-size').value = plant.potSize || '';
   document.getElementById('edit-location').value = plant.location || '';
   document.getElementById('edit-note').value = plant.note || '';
-  document.getElementById('edit-season-hint').textContent = '';
 
   const ml = suggestedWaterMl(plant.potSize);
   document.getElementById('edit-water-amount-hint').textContent =
@@ -267,7 +217,6 @@ function saveEditModal() {
   const plant = plants.find(p => p.id === editingPlantId);
 
   plant.name = document.getElementById('edit-name').value;
-  plant.plantType = document.getElementById('edit-plant-type').value || null;
   plant.waterFreq = Number(document.getElementById('edit-water-freq').value);
   const lastWateredInput = document.getElementById('edit-last-watered').value;
   if (lastWateredInput) plant.lastWatered = new Date(lastWateredInput).toISOString();
@@ -527,21 +476,6 @@ function render() {
   maybeNotify(plants);
 }
 
-document.getElementById('plant-type').addEventListener('change', (e) => {
-  const type = e.target.value;
-  const hint = document.getElementById('season-hint');
-  if (!type) {
-    hint.textContent = '';
-    return;
-  }
-  const season = getCurrentSeason();
-  const t = PLANT_TEMPLATES[type][season];
-  document.getElementById('water-freq').value = t.water;
-  document.getElementById('fertilize-freq').value = t.fertilize;
-  document.getElementById('note').value = generateTemplateNote(type, season);
-  hint.textContent = `Подставлено для текущего периода (${season === 'summer' ? 'весна-лето, активный рост' : 'осень-зима, период покоя'}) — можешь поправить вручную.`;
-});
-
 document.getElementById('pot-size').addEventListener('input', (e) => {
   const ml = suggestedWaterMl(e.target.value);
   document.getElementById('water-amount-hint').textContent =
@@ -573,7 +507,6 @@ document.getElementById('add-form').addEventListener('submit', async (e) => {
   plants.push({
     id: crypto.randomUUID(),
     name: document.getElementById('name').value,
-    plantType: document.getElementById('plant-type').value || null,
     waterFreq: Number(document.getElementById('water-freq').value),
     fertilizeFreq: Number(document.getElementById('fertilize-freq').value),
     potSize: document.getElementById('pot-size').value,
@@ -590,7 +523,6 @@ document.getElementById('add-form').addEventListener('submit', async (e) => {
   e.target.reset();
   document.getElementById('water-freq').value = 7;
   document.getElementById('fertilize-freq').value = 30;
-  document.getElementById('season-hint').textContent = '';
   document.getElementById('water-amount-hint').textContent = '';
   document.getElementById('photo-upload-preview').classList.add('hidden');
   document.getElementById('photo-upload-plus').classList.remove('hidden');
@@ -598,15 +530,6 @@ document.getElementById('add-form').addEventListener('submit', async (e) => {
 });
 
 // ---------- Edit modal: wiring ----------
-
-document.getElementById('edit-plant-type').addEventListener('change', (e) => {
-  const type = e.target.value;
-  if (!type) {
-    document.getElementById('edit-season-hint').textContent = '';
-    return;
-  }
-  fillEditTypeFields(type, getCurrentSeason());
-});
 
 document.getElementById('edit-pot-size').addEventListener('input', (e) => {
   const ml = suggestedWaterMl(e.target.value);

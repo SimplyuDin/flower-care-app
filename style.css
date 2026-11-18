@@ -479,6 +479,16 @@ button:hover {
   position: relative;
 }
 
+.edit-modal-content {
+  max-width: 480px;
+  padding: 24px;
+  gap: 14px;
+}
+
+.edit-modal-content textarea {
+  min-height: 70px;
+}
+
 .modal-close-x {
   position: absolute;
   top: 10px;
