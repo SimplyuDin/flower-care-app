@@ -230,6 +230,7 @@ function openEditModal(id) {
   document.getElementById('edit-plant-type').value = plant.plantType || '';
   document.getElementById('edit-water-freq').value = plant.waterFreq;
   document.getElementById('edit-last-watered').value = toDatetimeLocalValue(plant.lastWatered);
+  updateLastWateredButtonLabel();
   document.getElementById('edit-fertilize-freq').value = plant.fertilizeFreq;
   document.getElementById('edit-pot-size').value = plant.potSize || '';
   document.getElementById('edit-location').value = plant.location || '';
@@ -251,8 +252,7 @@ function openEditModal(id) {
     placeholder.classList.remove('hidden');
   }
 
-  document.getElementById('edit-history-list').classList.add('hidden');
-  document.getElementById('edit-history-toggle').textContent = `История (${(plant.history || []).length}) ▼`;
+  document.getElementById('edit-history-toggle').textContent = `📜 Открыть историю (${(plant.history || []).length})`;
 
   document.getElementById('edit-modal').classList.remove('hidden');
 }
@@ -280,6 +280,88 @@ function saveEditModal() {
   closeEditModal();
   render();
 }
+
+// ---------- Last watered modal ----------
+
+function updateLastWateredButtonLabel() {
+  const value = document.getElementById('edit-last-watered').value;
+  const label = value
+    ? new Date(value).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '—';
+  document.getElementById('open-last-watered-btn').textContent = `🕐 Последний полив: ${label}`;
+}
+
+function openLastWateredModal() {
+  document.getElementById('last-watered-input').value = document.getElementById('edit-last-watered').value;
+  document.getElementById('last-watered-modal').classList.remove('hidden');
+}
+
+function closeLastWateredModal() {
+  document.getElementById('last-watered-modal').classList.add('hidden');
+}
+
+document.getElementById('open-last-watered-btn').addEventListener('click', openLastWateredModal);
+document.getElementById('last-watered-cancel').addEventListener('click', closeLastWateredModal);
+document.getElementById('last-watered-close-x').addEventListener('click', closeLastWateredModal);
+document.getElementById('last-watered-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'last-watered-modal') closeLastWateredModal();
+});
+document.getElementById('last-watered-save').addEventListener('click', () => {
+  document.getElementById('edit-last-watered').value = document.getElementById('last-watered-input').value;
+  updateLastWateredButtonLabel();
+  closeLastWateredModal();
+});
+
+// ---------- History modal ----------
+
+let historyModalPlantId = null;
+
+function openHistoryModal(plantId) {
+  historyModalPlantId = plantId;
+  renderHistoryModal();
+  document.getElementById('history-modal').classList.remove('hidden');
+}
+
+function closeHistoryModal() {
+  historyModalPlantId = null;
+  document.getElementById('history-modal').classList.add('hidden');
+}
+
+function renderHistoryModal() {
+  const plant = loadPlants().find(p => p.id === historyModalPlantId);
+  const list = document.getElementById('history-modal-list');
+  const history = plant.history || [];
+
+  if (history.length === 0) {
+    list.innerHTML = '<p class="hint">Пока нет записей.</p>';
+    return;
+  }
+
+  list.innerHTML = history.map((h, i) => `
+    <div class="history-entry-row">
+      <span class="history-entry">${formatHistoryEntry(h)}</span>
+      <button class="history-delete-btn" data-index="${i}" title="Удалить запись">✕</button>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.history-delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.index);
+      const plants = loadPlants();
+      const p = plants.find(pl => pl.id === historyModalPlantId);
+      p.history.splice(index, 1);
+      savePlants(plants);
+      renderHistoryModal();
+      document.getElementById('edit-history-toggle').textContent = `📜 Открыть историю (${p.history.length})`;
+    });
+  });
+}
+
+document.getElementById('history-close-x').addEventListener('click', closeHistoryModal);
+document.getElementById('history-back-btn').addEventListener('click', closeHistoryModal);
+document.getElementById('history-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'history-modal') closeHistoryModal();
+});
 
 // ---------- Notifications ----------
 
@@ -536,18 +618,7 @@ document.getElementById('edit-photo-input').addEventListener('change', async (e)
 });
 
 document.getElementById('edit-history-toggle').addEventListener('click', () => {
-  const list = document.getElementById('edit-history-list');
-  const plant = loadPlants().find(p => p.id === editingPlantId);
-  const history = plant.history || [];
-
-  if (list.classList.contains('hidden')) {
-    list.innerHTML = history.length === 0
-      ? '<p class="hint">Пока нет записей.</p>'
-      : history.slice(0, 10).map(h => `<div class="history-entry">${formatHistoryEntry(h)}</div>`).join('');
-    list.classList.remove('hidden');
-  } else {
-    list.classList.add('hidden');
-  }
+  openHistoryModal(editingPlantId);
 });
 
 document.getElementById('edit-water-btn').addEventListener('click', () => {
@@ -584,7 +655,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-render();
+async function initPlants() {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/plants.json`);
+    const cloudPlants = await res.json();
+    if (cloudPlants) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudPlants));
+    }
+  } catch (e) {
+    // нет интернета или Firebase недоступен — показываем то, что есть локально
+  }
+  render();
+}
+
+initPlants();
 
 // обновляем обратный отсчёт до полива без перезагрузки страницы
 setInterval(() => {

@@ -1,4 +1,5 @@
 const FIREBASE_URL = 'https://home-garden-dedec-default-rtdb.firebaseio.com';
+const APP_URL = 'https://flower-care-app-drab.vercel.app/';
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
@@ -40,7 +41,13 @@ async function main() {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: CHAT_ID, text }),
+    body: JSON.stringify({
+      chat_id: CHAT_ID,
+      text,
+      reply_markup: {
+        inline_keyboard: [[{ text: '🌱 Открыть Home Garden', url: APP_URL }]],
+      },
+    }),
   });
 
   console.log('Отправлено:', text);

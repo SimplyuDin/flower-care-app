@@ -151,10 +151,8 @@
         <input type="number" id="edit-water-freq" min="1">
       </label>
 
-      <label>
-        Последний полив был (можно поправить вручную — удобно, если забыл отметить, или чтобы проверить таймер)
-        <input type="datetime-local" id="edit-last-watered">
-      </label>
+      <button id="open-last-watered-btn" class="secondary-btn" type="button">🕐 Последний полив: —</button>
+      <input type="hidden" id="edit-last-watered">
 
       <label>
         Подкармливать каждые (дней)
@@ -177,14 +175,37 @@
         <button id="edit-fertilize-btn" type="button">🌿 Подкормил сегодня</button>
       </div>
 
-      <button id="edit-history-toggle" class="secondary-btn" type="button">История ▼</button>
-      <div id="edit-history-list" class="history-list hidden"></div>
+      <button id="edit-history-toggle" class="secondary-btn" type="button">📜 Открыть историю</button>
 
       <div class="modal-actions">
         <button id="edit-save-btn" type="button">Сохранить</button>
         <button id="edit-cancel-btn" class="secondary-btn" type="button">Закрыть</button>
       </div>
       <button id="edit-delete-btn" class="danger-btn" type="button">Удалить растение</button>
+    </div>
+  </div>
+
+  <div id="last-watered-modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="last-watered-close-x" class="modal-close-x" type="button" title="Закрыть">✕</button>
+      <h3>Когда был последний полив?</h3>
+      <label>
+        Дата и время
+        <input type="datetime-local" id="last-watered-input">
+      </label>
+      <div class="modal-actions">
+        <button id="last-watered-cancel" class="secondary-btn" type="button">Отмена</button>
+        <button id="last-watered-save" type="button">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="history-modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="history-close-x" class="modal-close-x" type="button" title="Закрыть">✕</button>
+      <h3>История ухода</h3>
+      <div id="history-modal-list" class="history-list"></div>
+      <button id="history-back-btn" class="secondary-btn" type="button">Закрыть</button>
     </div>
   </div>
 

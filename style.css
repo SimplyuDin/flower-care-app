@@ -355,6 +355,31 @@ button:hover {
   color: #4a5a46;
 }
 
+.history-entry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.history-entry-row:last-child {
+  border-bottom: none;
+}
+
+.history-delete-btn {
+  background: transparent;
+  color: #b55;
+  padding: 2px 8px;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.history-delete-btn:hover {
+  background: #fdecec;
+}
+
 .modal {
   position: fixed;
   top: 0;
