@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'plants';
 const NOTIFY_DATE_KEY = 'lastNotifyDate';
+const FIREBASE_URL = 'https://home-garden-dedec-default-rtdb.firebaseio.com';
 
 const PLANT_TEMPLATES = {
   succulent: {
@@ -113,6 +114,17 @@ function loadPlants() {
 
 function savePlants(plants) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(plants));
+  syncToCloud(plants);
+}
+
+function syncToCloud(plants) {
+  fetch(`${FIREBASE_URL}/plants.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(plants),
+  }).catch(() => {
+    // нет интернета или Firebase недоступен — просто продолжаем работать локально
+  });
 }
 
 function daysSince(dateStr) {
